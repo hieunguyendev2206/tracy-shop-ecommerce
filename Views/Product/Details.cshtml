@@ -1,0 +1,248 @@
+﻿@using TracyShop.Data
+@model TracyShop.ViewModels.ProductsListViewModel
+@{
+    ViewData["Title"] = "Details";
+    Layout = "~/Views/Shared/_LayoutProduct.cshtml";
+}
+
+@inject AppDbContext _context
+
+<div class="row wow bounceIn" data-wow-offset="100" data-wow-delay="0.5s">
+
+    <div class="col-md-7 col-xs-12">
+        <!-- Carousel Start -->
+        <div class="carousel products">
+            <div class="container-fluid">
+                <div class="owl-carousel">
+                    @{
+                        foreach (var image in Model.Images)
+                        {
+                            <div class="carousel-item">
+                                <div class="carousel-img">
+                                    <img src="@image.Path" alt="Image">
+                                </div>
+                            </div>
+                        }
+                    }
+
+                </div>
+            </div>
+        </div>
+        <!-- Carousel End -->
+    </div>
+
+    <div class="product-info col-md-5 col-xs-12">
+        <h1>@Model.Name</h1>
+        <div class="price-product">
+            @if (Model.Promotion == 0)
+            {
+                <div class="text text-danger"
+                     style="font-size: 20px; font-weight: bold;">@string.Format("{0:0,0}", Model.Price) VNĐ
+                </div>
+            }
+            else
+            {
+                <div class="prices">
+                    <div class="price-origin">@string.Format("{0:0,0}", Model.Price) VNĐ</div>
+                    <div class="price-discount text text-danger"
+                         style="font-size: 20px; font-weight: bold;">@string.Format("{0:0,0}", Model.PriceDiscounted) VNĐ
+                    </div>
+                    <div class="discount">Giảm @Model.Promotion%</div>
+                </div>
+            }
+        </div>
+        @if (Model.Promotion != 0)
+        {
+            <div class="item-product-detail">
+                <label class="item-tile">Mã giảm giá</label>
+                <label class="item-info">Giảm @Model.Promotion%</label>
+            </div>
+        }
+        <div class="item-product-detail form-group">
+            <div class="row">
+                <div class="col-md-3 col-xs-12">
+                    <label class="item-tile">Size</label>
+                </div>
+                <div class="col-md-9 col-xs-12">
+                    @foreach (var size in Model.Sizes)
+                    {
+                        <div class="item-checked">
+                            <label for="@size.Name">@size.Name (@size.Description)</label>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="item-product-detail">
+            <div class="row">
+                <div class="col-md-6 col-xs-6">
+                    <label for="name">Số lượng sẵn có</label>
+                </div>
+                <div class="col-md-6 col-xs-6">
+                    @if (Model.Count != 0)
+                    {
+                        <label>@Model.Count sản phẩm</label>
+                    }
+                    else
+                    {
+                        <label class="text-danger"><i>Hết hàng</i></label>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @if (ViewBag.Bit == true)
+        {
+            <div class="item-product-button">
+                <div class="row">
+                    <div class="col-md-7 col-xs-12">
+                        <form method="post" asp-action="AddCart" asp-controller="Product" asp-route-id="@Model.Id">
+                            <p>
+                                <button class="btn btn-outline-success">Thêm vào giỏ hàng</button>
+                            </p>
+                        </form>
+                    </div>
+                    <div class="col-md-5 col-xs-12">
+                        <a asp-controller="Product" asp-action="BuyNow" asp-route-id="@Model.Id" class="btn btn-success"
+                           style="margin-top: 2px;">Mua ngay</a>
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+<div class="product-detail">
+    <h3>Chi tiết sản phẩm</h3>
+    <p>- Tên sản phẩm: @Model.Name</p>
+    <p>- Xuất xứ: @Model.Origin</p>
+    <p>- Nhãn hiệu: @Model.Trandemark</p>
+    <p>- Năm sản xuất: @Model.Year_SX.ToString("dd-MM-yyyy HH:mm")</p>
+    <p>- Mô tả: @Model.Description</p>
+</div>
+<div class="product-detail">
+    <h3>Đánh giá sản phẩm</h3>
+
+    @if (ViewBag.Review == 0)
+    {
+        <div class="text-center" style="margin-top: 12%; margin-bottom: 2% ">
+            <img src="~/Client/img/review-blank.png" style="width: 10%;"/>
+        </div>
+        <div class="text-center" style="margin-bottom: 2%">Chưa có đánh giá.</div>
+    }
+    else
+    {
+        <div class="row" style="margin-top: 2%;">
+            <div class="col-md-12">
+
+                @foreach (var item in Model.Reviews)
+                {
+                    <div class="media mt-4">
+                        @if (_context.Users.Where(u => u.Id == item.UserId).First().Avatar != null)
+                        {
+                            <img class="mr-3 rounded-circle" alt="Bootstrap Media Preview"
+                                 src="@_context.Users.Where(u => u.Id == item.UserId).First().Avatar"/>
+                        }
+                        else
+                        {
+                            <img class="mr-3 rounded-circle" alt="Bootstrap Media Preview"
+                                 src="~/Client/img/default-user.jpg"/>
+                        }
+                        <div class="media-body">
+                            <div class="row">
+                                <div class="col-md-6 col-xs-12 d-flex">
+                                    <h5 style="margin-right: 3%;">@_context.Users.Where(u => u.Id == item.UserId).First().Name</h5>
+                                    @{
+                                        var time = DateTime.Now - item.CreatedDate;
+                                        var totalDays = (int)time.TotalDays;
+                                        if (totalDays > 1)
+                                        {
+                                            <div
+                                                class="small text-gray-500">@item.CreatedDate.ToString("dd/MM/yyyy")</div>
+                                        }
+                                        else if (totalDays == 1)
+                                        {
+                                            <div class="small text-gray-500">1 ngày trước</div>
+                                        }
+                                        else
+                                        {
+                                            var totalHours = (int)time.TotalHours;
+                                            if (totalHours < 1)
+                                            {
+                                                var totalMinutes = (int)time.TotalMinutes;
+                                                if (totalMinutes < 1)
+                                                {
+                                                    <div class="small text-gray-500">Vừa xong</div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="small text-gray-500">@totalMinutes phút trước</div>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <div class="small text-gray-500">@totalHours giờ trước</div>
+                                            }
+                                        }
+                                    }
+                                    @*<span class="local-datetime"
+                                              title="@(item.CreatedDate.ToString("dd-MM-yyyy HH:mm")) UTC"
+                                              data-utc="@(item.CreatedDate.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds)">
+
+                                            @(item.CreatedDate.ToString("dd-MM-yyyy HH:mm"))
+
+                                        </span>*@
+                                </div>
+                                <div class="col-md-6 col-xs-12">
+                                    @for (var i = 0; i < item.Rate; i++)
+                                    {
+                                        <label>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                 fill="#FFD600" class="bi bi-star-fill" viewBox="0 0 16 16">
+                                                <path
+                                                    d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                                            </svg>
+                                        </label>
+                                    }
+                                    @for (var i = 0; i < 5 - item.Rate; i++)
+                                    {
+                                        <label>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                 fill="#FFD600" class="bi bi-star" viewBox="0 0 16 16">
+                                                <path
+                                                    d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957a.565.565 0 0 0-.163-.505L1.71 6.745l4.052-.576a.525.525 0 0 0 .393-.288L8 2.223l1.847 3.658a.525.525 0 0 0 .393.288l4.052.575-2.906 2.77a.565.565 0 0 0-.163.506l.694 3.957-3.686-1.894a.503.503 0 0 0-.461 0z"/>
+                                            </svg>
+                                        </label>
+                                    }
+
+                                </div>
+                            </div>
+                            <b style="font-size: 12px;">Phân loại
+                                hàng: @_context.Sizes.Where(s => s.Id == item.SelectedSize).First().Name</b>
+                            <br/>
+                            @item.Content
+                            @if (item.Image != "")
+                            {
+                                <div class="container row" style="margin-top: 2%;">
+                                    <img src="@item.Image" alt="images" width="200"/>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+</div>
+
+<style>
+    .media img {
+        width: 60px;
+        height: 60px
+    }
+
+    .reply a {
+        text-decoration: none
+    }
+</style>

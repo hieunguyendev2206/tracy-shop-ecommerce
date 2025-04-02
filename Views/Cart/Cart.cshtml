@@ -1,0 +1,161 @@
+﻿@using TracyShop.Data
+@model IEnumerable<Cart>
+@{
+    ViewData["Title"] = "Cart";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@inject AppDbContext _context
+<!-- Page Header Start -->
+<div class="cart-header mb-0">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="wow fadeInDown" data-wow-delay="0.5s">Giỏ hàng</h2>
+            </div>
+            <div class="col-12 wow fadeInUp" data-wow-delay="0.5s">
+                <a asp-controller="Home" asp-action="Index">Home</a>
+                <a asp-controller="Product" asp-action="Product">My Cart</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Page Header End -->
+<!-- Table Cart Start-->
+<div class="container">
+    @if (ViewBag.Message == "")
+    {
+        <table class="table" style="margin: 5% 0%">
+            <thead>
+            <tr>
+                <th>
+                    Sản phẩm
+                </th>
+                <th>
+                    Phân loại hàng
+                </th>
+                <th>
+                    Đơn giá
+                </th>
+                <th>
+                    Số lượng
+                </th>
+                <th>
+                    Số tiền
+                </th>
+                <th></th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td style="width: 40%">
+                        <div class="row">
+                            <div class="col-md-4 col-xs-12">
+                                <img src="@item.Image" style="width: 100%"/>
+                            </div>
+                            <div class="col-md-8 col-xs-12">
+                                @_context.Product.Where(p => p.Id == item.ProductId).First().Name
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        @_context.Sizes.Where(s => s.Id == item.SelectedSize).First().Name
+                    </td>
+                    <td>
+                        <div class="unit-price">
+                            @if (item.Promotion != 0)
+                            {
+                                <div class="unit-price-origin"
+                                     style="font-size: 12px; text-decoration: line-through;">@string.Format("{0:0,0}", item.UnitPrice)</div>
+                            }
+                            <div class="unit-price-discount text text-danger"
+                                 style="font-size: 15px; font-weight: bold;">
+                                @string.Format("{0:0,0}", item.UnitPrice * (1 - item.Promotion))
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <input asp-for="@item.Quantity" name="@item.Quantity" id="@item.Id" type="number" min="1"
+                               max="50" value="@item.Quantity" disabled>
+                    </td>
+                    <td>
+                        @string.Format("{0:0,0}", item.UnitPrice * (1 - item.Promotion) * item.Quantity)
+                    </td>
+                    <td>
+                        <a asp-controller="Cart" asp-action="UpdateCart" asp-route-id="@item.Id"
+                           class="btn btn-success">Chỉnh sửa</a>
+                    </td>
+                    <td>
+                        <button data-id="@item.Id" class="btn btn-outline-danger deleteCart" type="button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                                 class="bi bi-trash-fill" viewBox="0 0 16 16">
+                                <path
+                                    d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        <div class="row">
+            <div class="col-md-6 col-xs-12">
+                Tổng số sản phẩm: @ViewBag.Count sản phẩm
+            </div>
+            <div class="col-md-6 col-xs-12">
+                <div class="row">
+                    <div class="col-md-6 col-xs-12">
+                        Tổng thanh toán: @string.Format("{0:0,0}", ViewBag.Total) VNĐ
+                    </div>
+                    <div class="col-md-6 col-xs-12">
+                        <a asp-controller="Order" asp-action="Order" asp-route-id="@Model." class="btn btn-success">Mua
+                            hàng</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center" style="margin-top: 12%; margin-bottom: 2% ">
+            <img src="~/Client/img/cart-blank.png" style="width: 10%;"/>
+        </div>
+        <div class="text-center" style="margin-bottom: 2%">@ViewBag.Message</div>
+        <div style="margin-bottom: 12%; text-align: center;">
+            <a asp-controller="Product" asp-action="Product" class="btn btn-success">Mua sắm ngay</a>
+        </div>
+    }
+</div>
+
+<!-- Table Cart End -->
+
+<form id="deleteCart" asp-action="DeleteCart">
+    <input type="hidden" id="cartId" name="Id"/>
+</form>
+
+@section Scripts{
+    <script src="~/Client/js/jquery-3.4.1.min.js"></script>
+    <script>
+        $(function () {
+            $('.deleteCart').click(function (e) {
+                swal({
+                    title: "Bạn chắc chắn?",
+                    text: "Bạn chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?",
+                    icon: "warning",
+                    buttons: true,
+                    dangerMode: true
+                }).then((confirm) => {
+                    if (confirm) {
+                        var btn = $(this);
+                        var id = btn.data("id");
+                        $('#cartId').val(id);
+                        $('#deleteCart').submit();
+                    }
+                });
+            });
+        });
+    </script>
+}

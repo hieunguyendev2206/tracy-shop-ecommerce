@@ -1,0 +1,643 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using TracyShop.Data
+@inject SignInManager<AppUser> SignInManager
+@inject UserManager<AppUser> UserManager
+@inject AppDbContext _context
+
+@inject SignInManager<AppUser> SignInManager
+@{
+    var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+    var activePage = System.IO.Path.GetFileNameWithoutExtension(ViewContext.ActionDescriptor.DisplayName);
+    Func<string, string, string> ActiveClass = (activePage, page) => { return activePage == page ? "active" : ""; };
+}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>@ViewData["title"] - Admin</title>
+
+
+    <!-- Custom fonts for this template-->
+    <link href="~/lib/font-awesome/css/all.min.css" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="~/Admin/css/sb-admin-2.min.css" rel="stylesheet">
+
+    <!-- Paging -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css"/>
+
+
+</head>
+
+<body id="page-top">
+
+<!-- Page Wrapper -->
+<div id="wrapper">
+
+    <!-- Sidebar -->
+    <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+        <!-- Sidebar - Brand -->
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" asp-area="Admin" asp-controller="Home"
+           asp-action="Index">
+            <div class="sidebar-brand-icon rotate-n-15">
+                <i class="fas fa-laugh-wink"></i>
+            </div>
+            <div class="sidebar-brand-text mx-3">Tracy Admin</div>
+        </a>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider my-0">
+
+        <!-- Nav Item - Dashboard -->
+        <li class="nav-item active">
+            <a class="nav-link" asp-area="Admin" asp-controller="Home" asp-action="Index">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Tổng quan</span>
+            </a>
+        </li>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider">
+
+        <!-- Heading -->
+        <div class="sidebar-heading">
+            Quản lý
+        </div>
+
+        @if (_context.UserRoles.Where(r => r.UserId == UserManager.GetUserAsync(User).Result.Id).First().RoleId == "1")
+        {
+            <!-- Nav Item - Pages Quản lý Nhân viên Menu -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseEmployees"
+                   aria-expanded="true" aria-controls="collapseTwo">
+                    <i class="fas fa-address-book"></i>
+                    <span>Quản lý nhân viên</span>
+                </a>
+                <div id="collapseEmployees" class="collapse" aria-labelledby="headingTwo"
+                     data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Quản lý nhân viên:</h6>
+                        <a class="collapse-item" asp-area="Admin" asp-controller="Employee" asp-action="Index">Danh sách
+                            nhân viên</a>
+                        <a class="collapse-item" asp-area="Admin" asp-controller="Employee" asp-action="Create">Thêm
+                            nhân viên</a>
+                    </div>
+                </div>
+            </li>
+        }
+
+        <!-- Nav Item - Pages Quản lý sản phẩm Menu -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseProducts"
+               aria-expanded="true" aria-controls="collapseUtilities">
+                <i class="fab fa-product-hunt"></i>
+                <span>Quản lý sản phẩm</span>
+            </a>
+            <div id="collapseProducts" class="collapse" aria-labelledby="headingUtilities"
+                 data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <h6 class="collapse-header">Quản lý sản phẩm:</h6>
+                    <a class="collapse-item" asp-area="Admin" asp-controller="Category" asp-action="Index">Danh mục sản
+                        phẩm</a>
+                    <a class="collapse-item" asp-area="Admin" asp-controller="Products" asp-action="Index"
+                       asp-route-id="0">Sản phẩm</a>
+                </div>
+            </div>
+        </li>
+
+        <!-- Nav Item - Pages Quản lý khuyến mãi Menu -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePromotions"
+               aria-expanded="true" aria-controls="collapseUtilities">
+                <i class="fas fa-percentage"></i>
+                <span>Quản lý khuyến mãi</span>
+            </a>
+            <div id="collapsePromotions" class="collapse" aria-labelledby="headingUtilities"
+                 data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <h6 class="collapse-header">Quản lý khuyến mãi:</h6>
+                    <a class="collapse-item" asp-area="Admin" asp-controller="Promotions" asp-action="Index">Chương
+                        trình khuyến mãi</a>
+                    @if (_context.UserRoles.Where(r => r.UserId.Contains(User.FindFirst("Id").Value)).First().RoleId == "1")
+                    {
+                        <a class="collapse-item" asp-area="Admin" asp-controller="Promotions" asp-action="Create">Thêm
+                            khuyến mãi mới</a>
+                    }
+
+                </div>
+            </div>
+        </li>
+
+        <!-- Nav Item - Pages Quản lý khách hàng Menu -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCustomers"
+               aria-expanded="true" aria-controls="collapseUtilities">
+                <i class="fas fa-portrait"></i>
+                <span>Quản lý khách hàng</span>
+            </a>
+            <div id="collapseCustomers" class="collapse" aria-labelledby="headingUtilities"
+                 data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <h6 class="collapse-header">Quản lý khách hàng:</h6>
+                    <a class="collapse-item" asp-area="Admin" asp-controller="Customer" asp-action="Index">Danh sách
+                        khách hàng</a>
+                </div>
+            </div>
+        </li>
+
+        <!-- Nav Item - Pages Quản lý kho Menu -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseStock"
+               aria-expanded="true" aria-controls="collapseUtilities">
+                <i class="fas fa-warehouse"></i>
+                <span>Quản lý kho</span>
+            </a>
+            <div id="collapseStock" class="collapse" aria-labelledby="headingUtilities"
+                 data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <h6 class="collapse-header">Quản lý kho:</h6>
+                    <a class="collapse-item" asp-area="Admin" asp-action="Index" asp-controller="Stock">Số lượng hàng
+                        tồn</a>
+                    <a class="collapse-item" asp-area="Admin" asp-action="StockReceived" asp-controller="Stock">Nhập
+                        kho</a>
+                    <a class="collapse-item" asp-area="Admin" asp-action="StockReceivedInfo" asp-controller="Stock">Lịch
+                        sử nhập kho</a>
+                </div>
+            </div>
+        </li>
+
+        @if (_context.UserRoles.Where(r => r.UserId == UserManager.GetUserAsync(User).Result.Id).First().RoleId == "1")
+        {
+            <!-- Nav Item - Pages Quản lý MessageBot Menu -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseMessageBot"
+                   aria-expanded="true" aria-controls="collapseUtilities">
+                    <i class="fas fa-warehouse"></i>
+                    <span>Quản lý MessageBot</span>
+                </a>
+                <div id="collapseMessageBot" class="collapse" aria-labelledby="headingUtilities"
+                     data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Quản lý MessageBot:</h6>
+                        <a class="collapse-item" asp-area="Admin" asp-action="Index" asp-controller="Messages">Danh sách
+                            message bot</a>
+                        <a class="collapse-item" asp-area="Admin" asp-action="CreateMessageBot"
+                           asp-controller="Messages">Tạo message bot</a>
+                    </div>
+                </div>
+            </li>
+        }
+
+        <!-- Divider -->
+        <hr class="sidebar-divider">
+
+        <!-- Heading -->
+        <div class="sidebar-heading">
+            Chức năng khác
+        </div>
+
+        <!-- Nav Item - Pages Thông tin đặt hàng Menu -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseOrder"
+               aria-expanded="true" aria-controls="collapsePages">
+                <i class="fas fa-clipboard-list"></i>
+                <span>
+                        Thông tin đặt hàng
+                    @if (_context.Orders.Where(o => o.Is_check == false).ToList().Count != 0)
+                    {
+                        <sup>
+                                <span class="badge badge-danger badge-counter">
+                                    @_context.Orders.Where(o => o.Is_check == false).ToList().Count
+                                </span>
+                            </sup>
+                    }
+                    </span>
+            </a>
+            <div id="collapseOrder" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <h6 class="collapse-header">Thông tin đặt hàng:</h6>
+                    <a class="collapse-item" asp-area="Admin" asp-controller="Order" asp-action="Index">Danh sách đơn
+                        hàng</a>
+                    <a class="collapse-item" asp-area="Admin" asp-controller="Order" asp-action="CheckedOrder">
+                        Đơn hàng chưa duyệt
+                        @if (_context.Orders.Where(o => o.Is_check == false).ToList().Count != 0)
+                        {
+                            <sup>
+                                    <span class="badge badge-danger badge-counter">
+                                        @_context.Orders.Where(o => o.Is_check == false).ToList().Count
+                                    </span>
+                            </sup>
+                        }
+                    </a>
+                    <a class="collapse-item" asp-area="Admin" asp-controller="Order" asp-action="UpdateStatus">Trạng
+                        thái đơn hàng</a>
+                </div>
+            </div>
+        </li>
+
+        <!-- Nav Item - Phản hồi -->
+        <li class="nav-item">
+            <a class="nav-link" asp-area="Admin" asp-controller="Reviews" asp-action="Index">
+                <i class="fas fa-comments"></i>
+                <span>Phản hồi</span>
+            </a>
+        </li>
+
+        <!-- Nav Item - Chat -->
+        <li class="nav-item">
+            <a class="nav-link" asp-area="Admin" asp-controller="Messages" asp-action="Chat" asp-route-userId="@null">
+                <i class="fas fa-comments"></i>
+                <span>Chat</span>
+            </a>
+        </li>
+
+        @if (_context.UserRoles.Where(r => r.UserId == UserManager.GetUserAsync(User).Result.Id).First().RoleId == "1")
+        {
+            <!-- Nav Item - Pages Thống kê Menu -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseStatistic"
+                   aria-expanded="true" aria-controls="collapsePages">
+                    <i class="fas fa-fw fa-chart-area"></i>
+                    <span>Thống kê</span>
+                </a>
+                <div id="collapseStatistic" class="collapse" aria-labelledby="headingPages"
+                     data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Thống kê:</h6>
+                        <a class="collapse-item" asp-action="ReportByMonth" asp-controller="Report" asp-area="Admin">Thống
+                            kê theo tháng</a>
+                        <a class="collapse-item" asp-action="ReportByYear" asp-controller="Report" asp-area="Admin">Thống
+                            kê theo năm</a>
+                    </div>
+                </div>
+            </li>
+        }
+
+        <!-- Divider -->
+        <hr class="sidebar-divider d-none d-md-block">
+
+        <!-- Sidebar Toggler (Sidebar) -->
+        <div class="text-center d-none d-md-inline">
+            <button class="rounded-circle border-0" id="sidebarToggle"></button>
+        </div>
+
+    </ul>
+    <!-- End of Sidebar -->
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
+
+        <!-- Main Content -->
+        <div id="content">
+
+            <!-- Topbar -->
+            <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+                <!-- Sidebar Toggle (Topbar) -->
+                <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                    <i class="fa fa-bars"></i>
+                </button>
+
+                <!-- Topbar Navbar -->
+                <ul class="navbar-nav ml-auto">
+
+                    <!-- Nav Item - Search Dropdown (Visible Only XS) -->
+                    <li class="nav-item dropdown no-arrow d-sm-none">
+                        <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <!-- Dropdown - Messages -->
+                        <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
+                             aria-labelledby="searchDropdown">
+                            <form class="form-inline mr-auto w-100 navbar-search">
+                                <div class="input-group">
+                                    <input type="text" class="form-control bg-light border-0 small"
+                                           placeholder="Tìm kiếm ..." aria-label="Search"
+                                           aria-describedby="basic-addon2">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-primary" type="button">
+                                            <i class="fas fa-search fa-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </li>
+
+                    <!-- Nav Item - Alerts -->
+                    <li class="nav-item dropdown no-arrow mx-1">
+                        <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-bell fa-fw" style="color: #D7DF01;"></i>
+                            <!-- Counter - Alerts -->
+                            @if (_context.Orders.Where(o => o.Is_check == false).ToList().Count != 0)
+                            {
+                                <span class="badge badge-danger badge-counter">
+                                        @_context.Orders.Where(o => o.Is_check == false).ToList().Count
+                                    </span>
+                            }
+
+                        </a>
+                        <!-- Dropdown - Alerts -->
+                        @if (_context.Orders.Where(o => o.Is_check == false).ToList().Count != 0)
+                        {
+                            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                                 aria-labelledby="alertsDropdown">
+                                <h6 class="dropdown-header">
+                                    Thông báo
+                                </h6>
+                                @foreach (var item in _context.Orders.Where(o => o.Is_check == false).ToList())
+                                {
+                                    <a class="dropdown-item d-flex align-items-center" asp-action="CheckedOrder"
+                                       asp-controller="Order" asp-area="Admin">
+                                        <div class="dropdown-list-image mr-3">
+                                            @if (_context.Users.Where(u => u.Id.Contains(item.UserId)).First().Avatar != null)
+                                            {
+                                                <img class="rounded-circle"
+                                                     src="@_context.Users.Where(u => u.Id.Contains(item.UserId)).First().Avatar"
+                                                     alt="...">
+                                            }
+                                            else
+                                            {
+                                                <img class="rounded-circle" src="~/Client/img/default-user.jpg"
+                                                     alt="..."/>
+                                            }
+                                        </div>
+                                        <div>
+                                            @{
+                                                var time = DateTime.Now - item.Created_date;
+                                                var totalDays = (int)time.TotalDays;
+                                                if (totalDays > 1)
+                                                {
+                                                    <div
+                                                        class="small text-gray-500">@item.Created_date.ToString("dd/MM/yyyy")</div>
+                                                }
+                                                else if (totalDays == 1)
+                                                {
+                                                    <div class="small text-gray-500">1 ngày trước</div>
+                                                }
+                                                else
+                                                {
+                                                    var totalHours = (int)time.TotalHours;
+                                                    if (totalHours < 1)
+                                                    {
+                                                        var totalMinutes = (int)time.TotalMinutes;
+                                                        if (totalMinutes < 1)
+                                                        {
+                                                            <div class="small text-gray-500">Vừa xong</div>
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="small text-gray-500">@totalMinutes phút trước
+                                                            </div>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="small text-gray-500">@totalHours giờ trước</div>
+                                                    }
+                                                }
+                                            }
+                                            <span
+                                                class="font-weight-bold">@_context.Users.Where(u => u.Id.Contains(item.UserId)).First().Name đã đặt một đơn hàng. Nhấn để xem chi tiết.</span>
+                                        </div>
+                                    </a>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                                 aria-labelledby="alertsDropdown">
+                                <h6 class="dropdown-header">
+                                    Thông báo
+                                </h6>
+                                <div class="text-center" style="margin-top: 5%; margin-bottom: 5%;">
+                                    Chưa có thông báo mới.
+                                </div>
+                            </div>
+                        }
+                    </li>
+                    <div class="topbar-divider d-none d-sm-block"></div>
+
+                    <!-- Nav Item - User Information -->
+                    <li class="nav-item dropdown no-arrow">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            @if (_context.UserRoles.Where(r => r.UserId == UserManager.GetUserAsync(User).Result.Id).First().RoleId == "1")
+                            {
+                                <span
+                                    class="mr-2 d-none d-lg-inline text-gray-600 small"><b>Xin chào, Admin: </b>@UserManager.GetUserName(User)</span>
+                            }
+                            else
+                            {
+                                <span
+                                    class="mr-2 d-none d-lg-inline text-gray-600 small"><b>Xin chào, Nhân viên: </b>@UserManager.GetUserName(User)</span>
+                            }
+
+                            @if (User.FindFirst("Avatar").Value == "")
+                            {
+                                <img class="img-profile rounded-circle" src="~/Client/img/default-user.jpg" alt="">
+                            }
+                            else
+                            {
+                                <img class="img-profile rounded-circle" src="@User.FindFirst("Avatar").Value" alt="">
+                            }
+                        </a>
+                        <!-- Dropdown - User Information -->
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                             aria-labelledby="userDropdown">
+                            <a class="dropdown-item" asp-area="Admin" asp-controller="Profiles" asp-action="Profiles">
+                                <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                                Hồ sơ
+                            </a>
+                            <div class="dropdown-divider"></div>
+
+                            <a class="dropdown-item" asp-action="Logout" asp-controller="Login"
+                               asp-route-returnUrl="@Url.Action("Index", "Home", new { Area = "Admin" })">
+                                <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                Đăng xuất
+                            </a>
+
+                        </div>
+                    </li>
+
+                </ul>
+
+            </nav>
+            <!-- End of Topbar -->
+            <!-- Begin Page Content -->
+            <div class="container-fluid">
+                @RenderBody()
+            </div>
+            <!-- /.container-fluid -->
+
+        </div>
+        <!-- End of Main Content -->
+        <!-- Footer -->
+        <footer class="sticky-footer bg-white">
+            <div class="container my-auto">
+                <div class="copyright text-center my-auto">
+                    <span>Copyright &copy; TRACY SHOP @DateTime.Now.Year</span>
+                </div>
+            </div>
+        </footer>
+        <!-- End of Footer -->
+
+    </div>
+    <!-- End of Content Wrapper -->
+
+</div>
+<!-- End of Page Wrapper -->
+<!-- Scroll to Top Button-->
+<a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+</a>
+
+<!-- Logout Modal-->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <a class="btn btn-primary" href="login.html">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap core JavaScript-->
+<script src="~/Admin/vendor/jquery/jquery.min.js"></script>
+<script src="~/Admin/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+@*<script src="~/lib/bootstrap/dist/js/bootstrap.min.js"></script>*@
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+
+<!-- Core plugin JavaScript-->
+<script src="~/Admin/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+<!-- Custom scripts for all pages-->
+<script src="~/Admin/js/sb-admin-2.min.js"></script>
+
+<!--Page level plugin-->
+<script src="~/Admin/vendor/chart.js/Chart.min.js"></script>
+
+<!-- Paging -->
+<script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script>
+    $(function () {
+        $('.table').DataTable();
+    });
+</script>
+
+<!-- Alert -->
+<script src="~/lib/sweetalert/sweetalert.min.js"></script>
+
+<!--Page level custom scripts-->
+@*<script src="~/Admin/js/demo/chart-area-demo.js"></script>
+        <script src="~/Admin/js/demo/chart-pie-demo.js"></script>*@
+
+<!-- Address -->
+<script src="~/js/districts.min.js"></script>
+<script>
+    //<![CDATA[
+    if (address_2 = localStorage.getItem('address_2_saved')) {
+        $('select[name="District"] option').each(function () {
+            if ($(this).text() == address_2) {
+                $(this).attr('selected', '')
+            }
+        })
+        $('input.billing_address_2').attr('value', address_2)
+    }
+    if (district = localStorage.getItem('district')) {
+        $('select[name="District"]').html(district)
+        $('select[name="District"]').on('change', function () {
+            var target = $(this).children('option:selected')
+            target.attr('selected', '')
+            $('select[name="District"] option').not(target).removeAttr('selected')
+            address_2 = target.text()
+            $('input.billing_address_2').attr('value', address_2)
+            district = $('select[name="District"]').html()
+            localStorage.setItem('district', district)
+            localStorage.setItem('address_2_saved', address_2)
+        })
+    }
+    $('select[name="City"]').each(function () {
+        var $this = $(this),
+            stc = ''
+        c.forEach(function (i, e) {
+            e += +1
+            stc += '<option value="' + i + '">' + i + '</option>'
+            $this.html('<option value="">Chọn tỉnh/thành phố</option>' + stc)
+            if (address_1 = localStorage.getItem('address_1_saved')) {
+                $('select[name="City"] option').each(function () {
+                    if ($(this).text() == address_1) {
+                        $(this).attr('selected', '')
+                    }
+                })
+                $('input.billing_address_1').attr('value', address_1)
+            }
+            $this.on('change', function (i) {
+                i = $this.children('option:selected').index() - 1
+                var str = '',
+                    r = $this.val()
+                if (r != '') {
+                    arr[i].forEach(function (el) {
+                        str += '<option value="' + el + '">' + el + '</option>'
+                        $('select[name="District"]').html('<option value="">Chọn quận / huyện</option>' + str)
+                    })
+                    var address_1 = $this.children('option:selected').text()
+                    var district = $('select[name="District"]').html()
+                    localStorage.setItem('address_1_saved', address_1)
+                    localStorage.setItem('district', district)
+                    $('select[name="District"]').on('change', function () {
+                        var target = $(this).children('option:selected')
+                        target.attr('selected', '')
+                        $('select[name="District"] option').not(target).removeAttr('selected')
+                        var address_2 = target.text()
+                        $('input.billing_address_2').attr('value', address_2)
+                        district = $('select[name="District"]').html()
+                        localStorage.setItem('district', district)
+                        localStorage.setItem('address_2_saved', address_2)
+                    })
+                } else {
+                    $('select[name="District"]').html('<option value="">Chọn quận / huyện</option>')
+                    district = $('select[name="District"]').html()
+                    localStorage.setItem('district', district)
+                    localStorage.removeItem('address_1_saved', address_1)
+                }
+            })
+        })
+    })
+
+    //]]></script>
+
+@RenderSection("Scripts", false)
+
+</body>
+
+</html>

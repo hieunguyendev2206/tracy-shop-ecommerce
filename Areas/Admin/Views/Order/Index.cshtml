@@ -1,0 +1,69 @@
+﻿@using TracyShop.Data
+@model IEnumerable<Order>
+@inject AppDbContext _context
+@{
+    ViewData["Title"] = "Order";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Danh sách tất cả đơn hàng</h1>
+</div>
+
+@if (ViewBag.Message == "")
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Ngày mua</th>
+            <th>Tên khách hàng</th>
+            <th>Phương thức thanh toán</th>
+            <th>Giá trị đơn hàng</th>
+            <th>Đã duyệt</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Id)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Created_date)
+                </td>
+                <td>
+                    @_context.Users.Where(u => u.Id.Contains(item.UserId)).First().Name
+                </td>
+                <td>
+                    @(_context.PaymentMenthod.Where(p => p.Id == item.PaymentMenthodId).First().Name)
+                </td>
+                <td>
+                    @{
+                        float price = 0;
+                        var orderDetail = _context.OrderDetail.Where(o => o.OrderId == item.Id).ToList();
+                        foreach (var detail in orderDetail)
+                        {
+                            price += detail.Price;
+                        }
+                    }
+                    @string.Format("{0:0,0}", price) VNĐ
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Is_check)
+                </td>
+                <td>
+                    <a asp-area="Admin" asp-controller="Order" asp-action="Details" asp-route-id="@item.Id"><i
+                            class="fas fa-info-circle"></i></a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="text text-center" style="margin-top: 2%;">@ViewBag.Message</div>
+}

@@ -1,0 +1,63 @@
+﻿@{
+    Layout = "_LayoutProduct";
+    ViewData["Title"] = "Product";
+}
+
+<div class="row wow bounceIn" data-wow-offset="100" data-wow-delay="0.5s">
+
+    @if (ViewBag.Products.Count != 0)
+    {
+        foreach (var pro in ViewBag.Products)
+        {
+            <div class="col-lg-4 col-md-6">
+                <div class="team-item" style="margin:0 1% 5% 1%">
+                    <div class="team-img">
+
+                        @if (pro.ImageDefault == "")
+                        {
+                            <img src="~/Client/img/default-product.jpg" alt="Image">
+                        }
+                        else
+                        {
+                            <img src="@pro.ImageDefault" alt="Image">
+                        }
+
+                        <div class="team-social">
+                            <a asp-controller="Product" asp-action="Details" asp-route-id="@pro.Id">Xem</a>
+
+                            @if (pro.Count > 0)
+                            {
+                                <a asp-controller="Product" asp-action="BuyNow" asp-route-id="@pro.Id">Mua ngay</a>
+                            }
+
+                        </div>
+                    </div>
+                    <div class="team-text">
+                        <h2>@pro.Name</h2>
+                        <div class="content-product-deltals">
+                            <div class="price">
+                                <span class="money">@string.Format("{0:0,0}", pro.Price)Đ</span>
+                            </div>
+
+                            @if (pro.Count > 0)
+                            {
+                                <a asp-action="AddCart" asp-controller="Product" asp-route-id="@pro.Id" type="button"
+                                   class="btn btn-cart">Thêm Vào Giỏ</a>
+                            }
+                            else
+                            {
+                                <a style="margin-top: 4%;"><i>Hết hàng</i></a>
+                            }
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="text-center" style=" margin-top: 2%;">Không tìm thấy sản phẩm</div>
+    }
+</div>
+

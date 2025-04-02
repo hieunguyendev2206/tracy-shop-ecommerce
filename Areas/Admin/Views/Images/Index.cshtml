@@ -1,0 +1,81 @@
+﻿@using TracyShop.Data
+@model IEnumerable<Image>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+@inject AppDbContext _context
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Danh sách ảnh</h1>
+
+    @if (_context.UserRoles.Where(r => r.UserId.Contains(User.FindFirst("Id").Value)).First().RoleId == "1")
+    {
+        <a asp-area="Admin" asp-controller="Images" asp-action="Create"
+           class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-plus-circle text-white-50"></i> Thêm ảnh
+        </a>
+    }
+    <a asp-area="Admin" asp-controller="Products" asp-action="Index"
+       class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+        <i class="fas fa-arrow-alt-circle-left text-white-50"></i> Quay lại
+    </a>
+</div>
+<table class="table">
+    <thead>
+    <tr>
+        <th>
+            ID sản phẩm
+        </th>
+        <th>
+            Ảnh
+        </th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.ProductId)
+            </td>
+            <td>
+                <img src="@Html.DisplayFor(modelItem => item.Path)" alt="Img" style="width: 10%"/>
+            </td>
+            <td>
+                <button data-id="@item.Id" class="btn deleteImg" type="button"><i class="far fa-trash-alt"></i></button>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<form id="deleteImg" asp-action="Delete">
+    <input type="hidden" id="imgId" name="Id"/>
+</form>
+
+@section Scripts{
+    <script>
+        $(function () {
+            $('.deleteImg').click(function (e) {
+                swal({
+                    title: "Bạn chắc chắn?",
+                    text: "Bạn chắc chắn muốn xóa ảnh này?",
+                    icon: "warning",
+                    buttons: true,
+                    dangerMode: true
+                }).then((confirm) => {
+                    if (confirm) {
+                        var btn = $(this);
+                        var id = btn.data("id");
+                        $('#imgId').val(id);
+                        $('#deleteImg').submit();
+                    }
+                });
+            });
+        });
+    </script>
+}

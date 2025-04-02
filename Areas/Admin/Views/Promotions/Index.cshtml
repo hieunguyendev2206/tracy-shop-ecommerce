@@ -1,0 +1,102 @@
+﻿@using TracyShop.Data
+@model IEnumerable<Promotion>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+@inject AppDbContext _context
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Danh sách ưu đãi</h1>
+
+    @if (_context.UserRoles.Where(r => r.UserId.Contains(User.FindFirst("Id").Value)).First().RoleId == "1")
+    {
+        <a asp-area="Admin" asp-controller="Promotions" asp-action="Create"
+           class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-plus-circle text-white-50"></i> Thêm ưu đãi
+        </a>
+    }
+
+</div>
+<table class="table">
+    <thead>
+    <tr>
+        <th>
+            ID
+        </th>
+        <th>
+            Mức giảm giá
+        </th>
+        <th>
+            Ngày bắt đầu
+        </th>
+        <th>
+            Ngày kết thúc
+        </th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Id)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.percent)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.StartedDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EndDate)
+            </td>
+            @if (_context.UserRoles.Where(r => r.UserId.Contains(User.FindFirst("Id").Value)).First().RoleId == "1")
+            {
+                <td>
+                    <a asp-area="Admin" asp-controller="Promotions" asp-action="Edit" asp-route-id="@item.Id"><i
+                            class="fas fa-edit"></i></a> |
+                    <button data-id="@item.Id" class="btn deletePromotion" type="button"><i
+                            class="far fa-trash-alt"></i></button>
+                    |
+                </td>
+            }
+            else
+            {
+                <td></td>
+            }
+
+        </tr>
+    }
+    </tbody>
+</table>
+
+<form id="deletePromotion" asp-action="Delete">
+    <input type="hidden" id="promotionId" name="Id"/>
+</form>
+
+@section Scripts{
+    <script>
+        $(function () {
+            $('.deletePromotion').click(function (e) {
+                swal({
+                    title: "Bạn chắc chắn?",
+                    text: "Bạn chắc chắn muốn xóa chương trình khuyến mãi này?",
+                    icon: "warning",
+                    buttons: true,
+                    dangerMode: true
+                }).then((confirm) => {
+                    if (confirm) {
+                        var btn = $(this);
+                        var id = btn.data("id");
+                        $('#promotionId').val(id);
+                        $('#deletePromotion').submit();
+                    }
+                });
+            });
+        });
+    </script>
+}
