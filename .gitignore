@@ -7,6 +7,11 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/Dotnet.gitignore
 
+# Bỏ qua tệp cấu hình có thông tin nhạy cảm
+appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
